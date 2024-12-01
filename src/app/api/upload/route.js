@@ -31,7 +31,7 @@ export async function POST(req) {
       If you are unable to score, just give it a 0 out of 4. Analyze the question and graph data, and provide a response in the following format:
       {"score": "?/4", "strengths": ["..."], "weaknesses": ["..."], "tip": "..."}
       Use the OCR A-Level Spec and diagrams as a reference for your marking.
-      Here is the graph data for you to analyze: ${truncatedGraphData}\n\nAssistant:`;
+      Here is the graph data for you to analyze, create the graph using the data then analyze it: ${truncatedGraphData}\n\nAssistant:`;
   
       // Make a POST request to the Anthropic API
       const response = await fetch("https://api.anthropic.com/v1/complete", {
