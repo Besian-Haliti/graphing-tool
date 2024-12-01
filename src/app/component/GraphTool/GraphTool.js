@@ -13,6 +13,7 @@ import {
 
 export default function GraphTool() {
   const canvasRef = useRef(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
   const [question, setQuestion] = useState([]);
@@ -339,6 +340,7 @@ export default function GraphTool() {
   };
 
   const exportGraphToJSON = () => {
+    setLoading(true);
     const graphData = {
       elements: elements.map((element) => {
         if (element.type === "line" || element.type === "dottedLine") {
@@ -395,11 +397,14 @@ export default function GraphTool() {
         } catch (error) {
           console.error("Error parsing response JSON:", error);
           setError(error);
+        } finally {
+          setLoading(false); // Reset loading state
         }
       }) // Update the response text
       .catch((error) => {
         console.error("Error sending graph JSON:", error);
-        setError("Failed to submit graph. Please try again.");
+        setError(error);
+        setLoading(false);
       });
   };
   
@@ -526,7 +531,9 @@ export default function GraphTool() {
         </button>
       </div>
       <div className="response-container">
-        {responseJSON ? (
+      {loading ? (
+          <div className="loading-message">Loading, please wait...</div>
+        ) : responseJSON ? (
           <>
             <div className="header">
               <div className="logo">
@@ -534,7 +541,6 @@ export default function GraphTool() {
                 <span className="logo-text">
                   <strong>Nim AI</strong>
                 </span>
-                <div className="subheading">Question feedback</div>
               </div>
               <div className="score-circle" data-score={responseJSON.score}>
                 <div className="circle">
@@ -568,7 +574,7 @@ export default function GraphTool() {
             {error ? (
               <>
                 <h4>Error</h4>
-                <p>{error}</p>
+                <p>{error.message}</p>
               </>
             ) : (
               <>
