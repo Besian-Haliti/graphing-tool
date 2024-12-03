@@ -342,30 +342,30 @@ export default function GraphTool() {
   const exportGraphToJSON = () => {
     setLoading(true);
     const graphData = {
-      axis:[
+      axis: [
         {
-          "type":"x-axis line"
-          "start":{
-            "x":50,
-            "y":580
+          "type": "x-axis line",
+          "start": {
+            "x": 50,
+            "y": 580
           },
-          "end":{
-            "x":750,
-            "y":580
+          "end": {
+            "x": 750,
+            "y": 580
           }
         },
         {
-          "type":"y-axis line"
-          "start":{
-            "x":50,
-            "y":20
+          "type": "y-axis line",
+          "start": {
+            "x": 50,
+            "y": 20
           },
-          "end":{
-            "x":50,
-            "y":580
+          "end": {
+            "x": 50,
+            "y": 580
           }
         }
-      ] 
+      ],
       elements: elements.map((element) => {
         if (element.type === "line" || element.type === "dottedLine") {
           return {
