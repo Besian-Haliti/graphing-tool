@@ -18,7 +18,7 @@ export async function POST(req) {
   
       // Serialize and truncate graph data if necessary
       const serializedGraphData = JSON.stringify(graphData, null, 2);
-      const maxGraphDataLength = 5000; // Ensure graph data doesn't exceed token limits
+      const maxGraphDataLength = 5000;
       const truncatedGraphData =
         serializedGraphData.length > maxGraphDataLength
           ? serializedGraphData.substring(0, maxGraphDataLength) + "..."
