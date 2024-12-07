@@ -1,3 +1,5 @@
+import { getPrompt } from "../prompt/promptmod";
+
 export async function POST(req) {
     try {
       // Parse the incoming request body
@@ -25,12 +27,10 @@ export async function POST(req) {
           : serializedGraphData;
   
       // Format the prompt
-      const prompt = `\n\nHuman: You are an A-level economics teacher. You have received a question and graph data in JSON format. 
+      const databaseprompt = await getPrompt();
+      const prompt = `\n\nHuman: ${databaseprompt}
+      You have received a question and graph data in JSON format.
       Question: "${question}"
-      Only provide a JSON response no matter what information is given. Refer to the student as you in your answer. 
-      If you are unable to score, just give it a 0 out of 4. Analyze the question and graph data, and provide a response in the following format:
-      {"score": "?/4", "strengths": ["..."], "weaknesses": ["..."], "tip": "..."}
-      Use the OCR A-Level Spec and diagrams as a reference for your marking.
       Here is the graph data for you to analyze, create the graph using the data then analyze it: ${truncatedGraphData}\n\nAssistant:`;
   
       // Make a POST request to the Anthropic API

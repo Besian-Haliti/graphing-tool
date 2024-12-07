@@ -1,0 +1,71 @@
+/* Container for the prompt tool */
+.prompt-tool-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Input container for better structure */
+.prompt-input-container {
+  width: 100%;
+}
+
+/* Styled textarea for the prompt input */
+.prompt-input {
+  width: 100%;
+  font-size: 16px;
+  font-family: 'Nunito', sans-serif;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease;
+  overflow: hidden; /* Hide scrollbars */
+  resize: none; /* Prevent manual resizing */
+}
+
+.prompt-input:focus {
+  border-color: #2d3959;
+  outline: none;
+  box-shadow: 0 0 6px rgba(45, 57, 89, 0.2);
+}
+
+/* Update button for the prompt */
+.update-prompt-button {
+  background-color: #2d3959;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.update-prompt-button:hover {
+  background-color: #002854;
+  transform: scale(1.02);
+}
+
+.update-prompt-button:active {
+  background-color: #002854;
+}
+
+/* Checkbox container */
+.modal-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #555;
+}

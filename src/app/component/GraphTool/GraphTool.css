@@ -2,14 +2,13 @@ html,
 body {
   font-family: 'Nunito';
   margin: 0;
-  padding: 0;
   background-color: #f5f5f5;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Align items at the top */
   height: 100vh;
+  padding-top: 30px; /* Ensures all content starts 30px from the top */
   box-sizing: border-box;
-  overflow: hidden; /* Prevent scrollbars */
 }
 
 .graph-tool-container {
@@ -46,19 +45,19 @@ body {
 
 .toolbar-icons {
   position: absolute;
-  top: 20px; /* Start near the top */
-  right: 20px; /* Place it on the right-hand side */
+  top: 5%; /* Start near the top */
+  right: 5%; /* Place it on the right-hand side */
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
   z-index: 10; /* Ensure it appears above other elements */
 }
 
 .toolbar-icons button {
-  width: 50px;
-  height: 50px;
+  width: 110%;
+  height: 110%;
   border: none;
-  border-radius: 50%;
+  border-radius: 100%;
   background-color: #f9fafb;
   color: #333;
   cursor: pointer;
@@ -149,6 +148,7 @@ body {
   display: flex;
   flex-direction: column;
   font-family: 'Nunito', sans-serif;
+  overflow-x: hidden;
   overflow-y: auto; /* Scroll if content exceeds height */
 }
 
@@ -342,8 +342,9 @@ body {
 .question-input {
   padding: 10px;
   font-size: 14px;
-  width: 80%;
+  width: 100%;
   margin-right: 10px;
+  margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
