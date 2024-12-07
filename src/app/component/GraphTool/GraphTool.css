@@ -137,6 +137,7 @@ body {
 
 /* Response Container */
 .response-container {
+  margin-top: 30px;
   flex: 0 0 30%;
   max-width: 400px;
   height: 100%;
