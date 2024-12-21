@@ -57,12 +57,14 @@ export default function ResponseTool({graphData}){
               setError(error);
             } finally {
               setLoading(false); // Reset loading state
+              setShowSubmitButton(true);
             }
           }) // Update the response text
           .catch((error) => {
             console.error("Error sending graph JSON:", error);
             setError(error);
             setLoading(false);
+            setShowSubmitButton(true);
           });
     };
 
