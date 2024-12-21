@@ -35,27 +35,90 @@ export default function DrawingTool({ setGraphData }) {
         {
           "type": "x-axis line",
           "start": {
-            "x": 50,
-            "y": 580
+            "x": 0,
+            "y": 0
           },
           "end": {
             "x": 750,
-            "y": 580
+            "y": 0
           }
         },
         {
           "type": "y-axis line",
           "start": {
-            "x": 50,
-            "y": 20
+            "x": 0,
+            "y": 0
           },
           "end": {
-            "x": 50,
+            "x": 0,
             "y": 580
           }
         }
       ]
-    
+
+      useEffect(() => {
+        const canvasHeight = 620; // height of your canvas
+        
+        const adjustedElements = elements.map(element => {
+          if (element.type === "line") {
+            // Adjust both x and y positions of lines
+            return {
+              ...element,
+              start: {
+                x: element.start.x - 50, // subtract 50 from x
+                y: canvasHeight - (element.start.y - 20), // subtract 20 from y, then flip
+              },
+              end: {
+                x: element.end.x - 50, // subtract 50 from x
+                y: canvasHeight - (element.end.y - 20), // subtract 20 from y, then flip
+              },
+            };
+          } else if (element.type === "freeDraw") {
+            // Adjust for freeDraw elements (lines drawn freely)
+            return {
+              ...element,
+              points: element.points.map(point => ({
+                x: point.x - 50, // subtract 50 from x
+                y: canvasHeight - (point.y - 20), // subtract 20 from y, then flip
+              })),
+            };
+          } else if (element.type === "label") {
+            // Adjust for label elements
+            return {
+              ...element,
+              x: element.x - 50, // subtract 50 from x
+              y: canvasHeight - (element.y - 20), // subtract 20 from y, then flip
+            };
+          } else if (element.type === "point") {
+            // Adjust for point elements
+            return {
+              ...element,
+              x: element.x - 50, // subtract 50 from x
+              y: canvasHeight - (element.y - 20), // subtract 20 from y, then flip
+            };
+          } else if (element.type === "dottedLine") {
+            // Adjust for dotted line elements
+            return {
+              ...element,
+              start: {
+                x: element.start.x - 50, // subtract 50 from x
+                y: canvasHeight - (element.start.y - 20), // subtract 20 from y, then flip
+              },
+              end: {
+                x: element.end.x - 50, // subtract 50 from x
+                y: canvasHeight - (element.end.y - 20), // subtract 20 from y, then flip
+              },
+            };
+          }
+          return element;
+        });
+      
+        // Set the updated graph data
+        const graphData = { axis, elements: adjustedElements };
+        setGraphData(graphData); // Pass updated graphData to GraphTool
+      
+      }, [elements, setGraphData]);      
+
       const drawCanvas = () => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
