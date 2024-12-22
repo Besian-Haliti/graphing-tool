@@ -28,42 +28,44 @@ export async function POST(req) {
   
       // Format the prompt
       const databaseprompt = await getPrompt();
-      const prompt = `\n\nHuman: ${databaseprompt}
+      const prompt = `\n\nHuman:
       You have received a question and graph data in JSON format.
       Question: "${question}"
       Here is the graph data for you to analyze, create the graph using the data then analyze it: ${truncatedGraphData}\n\nAssistant:`;
   
       // Make a POST request to the Anthropic API
-      const response = await fetch("https://api.anthropic.com/v1/complete", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": process.env.ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          prompt: prompt,
-          model: "claude-2.1",
-          max_tokens_to_sample: 500,
-          stop_sequences: ["\n\nHuman:"],
+          model: "gpt-4",
+          messages: [
+            { role: "system", content: databaseprompt },
+            { role: "user", content: prompt },
+          ],
+          max_tokens: 500,
+          stop: ["\n\nHuman:"],
         }),
       });
   
       // Parse and handle the response
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error details from Anthropic API:", errorData);
+        console.error("Error details from OpenAI:", errorData);
         throw new Error(
-          `Claude API returned an error: ${errorData.message || "Unknown error"}`
+          `OpenAI returned an error: ${errorData.message || "Unknown error"}`
         );
       }
   
       const responseData = await response.json();
       console.log(responseData);
   
-      // Send the response from Anthropic back to the client
+      // Send the response from OpenAI back to the client
       return new Response(
-        JSON.stringify({ response: responseData.completion.trim() }),
+        JSON.stringify({ response: responseData.choices[0].message.content.trim() }),
         {
           status: 200,
           headers: { "Content-Type": "application/json" },
