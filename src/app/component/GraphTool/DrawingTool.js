@@ -35,22 +35,22 @@ export default function DrawingTool({ setGraphData }) {
         {
           "type": "x-axis line",
           "start": {
-            "x": 0,
-            "y": 0
+            "x": 50,
+            "y": 20
           },
           "end": {
             "x": 750,
-            "y": 0
+            "y": 20
           }
         },
         {
           "type": "y-axis line",
           "start": {
-            "x": 0,
-            "y": 0
+            "x": 50,
+            "y": 20
           },
           "end": {
-            "x": 0,
+            "x": 50,
             "y": 580
           }
         }
@@ -58,19 +58,19 @@ export default function DrawingTool({ setGraphData }) {
 
       useEffect(() => {
         const canvasHeight = 620; // height of your canvas
-        
+      
         const adjustedElements = elements.map(element => {
           if (element.type === "line") {
             // Adjust both x and y positions of lines
             return {
               ...element,
               start: {
-                x: element.start.x - 50, // subtract 50 from x
-                y: canvasHeight - (element.start.y - 20), // subtract 20 from y, then flip
+                x: element.start.x,
+                y: canvasHeight - element.start.y,
               },
               end: {
-                x: element.end.x - 50, // subtract 50 from x
-                y: canvasHeight - (element.end.y - 20), // subtract 20 from y, then flip
+                x: element.end.x,
+                y: canvasHeight - element.end.y,
               },
             };
           } else if (element.type === "freeDraw") {
@@ -78,46 +78,62 @@ export default function DrawingTool({ setGraphData }) {
             return {
               ...element,
               points: element.points.map(point => ({
-                x: point.x - 50, // subtract 50 from x
-                y: canvasHeight - (point.y - 20), // subtract 20 from y, then flip
+                x: point.x,
+                y: canvasHeight - point.y,
               })),
             };
           } else if (element.type === "label") {
             // Adjust for label elements
             return {
               ...element,
-              x: element.x - 50, // subtract 50 from x
-              y: canvasHeight - (element.y - 20), // subtract 20 from y, then flip
+              x: element.x,
+              y: canvasHeight - element.y,
             };
           } else if (element.type === "point") {
             // Adjust for point elements
             return {
               ...element,
-              x: element.x - 50, // subtract 50 from x
-              y: canvasHeight - (element.y - 20), // subtract 20 from y, then flip
+              x: element.x,
+              y: canvasHeight - element.y,
             };
           } else if (element.type === "dottedLine") {
             // Adjust for dotted line elements
-            return {
-              ...element,
-              start: {
-                x: element.start.x - 50, // subtract 50 from x
-                y: canvasHeight - (element.start.y - 20), // subtract 20 from y, then flip
-              },
-              end: {
-                x: element.end.x - 50, // subtract 50 from x
-                y: canvasHeight - (element.end.y - 20), // subtract 20 from y, then flip
-              },
-            };
+            if (element.start.x === element.end.x) {
+              return {
+                ...element,
+                start: {
+                  x: element.start.x,
+                  y: canvasHeight - element.start.y,
+                },
+                end: {
+                  x: element.end.x,
+                  y: 20, // Keep the end at a fixed value
+                },
+              };
+            } else {
+              // Non-vertical dotted line
+              return {
+                ...element,
+                start: {
+                  x: element.start.x,
+                  y: canvasHeight - element.start.y,
+                },
+                end: {
+                  x: element.end.x,
+                  y: canvasHeight - element.end.y,
+                },
+              };
+            }
           }
-          return element;
+      
+          return element; // This ensures all unhandled cases return the original element.
         });
       
         // Set the updated graph data
         const graphData = { axis, elements: adjustedElements };
         setGraphData(graphData); // Pass updated graphData to GraphTool
       
-      }, [elements, setGraphData]);      
+      }, [elements, setGraphData]);       
 
       const assignLabelToNearbyElements = () => {
         const updatedElements = elements.map((element) => {
