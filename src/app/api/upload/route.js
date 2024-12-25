@@ -26,12 +26,31 @@ export async function POST(req) {
           ? serializedGraphData.substring(0, maxGraphDataLength) + "..."
           : serializedGraphData;
   
+      const msPrompt = `Create an OCR A-level Economics style mark scheme for a (4 mark) graph question for this question:\n\n${question}`;
+      const summaryResponse = await fetch("https://api.openai.com/v1/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4",
+          prompt: msPrompt,
+          max_tokens: 500,
+        }),
+      });
+      const summaryData = await summaryResponse.json();
+      const markscheme = summaryData.choices?.[0]?.text?.trim() || "No response from OpenAI API.";
+
+          
+
       // Format the prompt
       const databaseprompt = await getPrompt();
       const prompt = `\n\nHuman:
       You have received a question and graph data in JSON format.
-      Question: "${question}"
-      Here is the graph data for you to analyze, create the graph using the data then analyze it: ${truncatedGraphData}\n\nAssistant:`;
+      Question: "${question}". Here is the Mark Scheme for the question ${markscheme}
+      Here is the graph data for you to analyze, create the graph using the data then 
+      mark it against the mark scheme: ${truncatedGraphData}\n\nAssistant:`;
   
       // Make a POST request to the Anthropic API
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
