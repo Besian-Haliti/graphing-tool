@@ -119,6 +119,59 @@ export default function DrawingTool({ setGraphData }) {
       
       }, [elements, setGraphData]);      
 
+      const assignLabelToNearbyElements = () => {
+        const updatedElements = elements.map((element) => {
+            if (element.type === "line" || element.type === "freeDraw") {
+                let isNearbyLabel = null;
+                let labelColor = null;
+    
+                // Check for labels within a 10-pixel radius
+                elements.forEach((label) => {
+                    if (label.type === "label") {
+                        if (element.type === "line") {
+                            const { start, end } = element;
+                            const distanceToStart = Math.sqrt(
+                                (label.x - start.x) ** 2 + (label.y - start.y) ** 2
+                            );
+                            const distanceToEnd = Math.sqrt(
+                                (label.x - end.x) ** 2 + (label.y - end.y) ** 2
+                            );
+    
+                            if (distanceToStart <= 25 || distanceToEnd <= 25) {
+                                isNearbyLabel = label.text;
+                                labelColor = label.color; // Capture the label's color
+                            }
+                        } else if (element.type === "freeDraw") {
+                            const isNearby = element.points.some(
+                                (point) =>
+                                    Math.sqrt(
+                                        (label.x - point.x) ** 2 +
+                                        (label.y - point.y) ** 2
+                                    ) <= 25
+                            );
+    
+                            if (isNearby) {
+                                isNearbyLabel = label.text;
+                                labelColor = label.color; // Capture the label's color
+                            }
+                        }
+                    }
+                });
+    
+                if (isNearbyLabel) {
+                    return { ...element, name: isNearbyLabel, color: labelColor }; // Add name and color properties
+                } else {
+                    const { name, color, ...rest } = element; // Remove name and color if not nearby
+                    return rest;
+                }
+            }
+            return element;
+        });
+    
+        setElements(updatedElements);
+      };
+    
+    
       const drawCanvas = () => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -145,14 +198,14 @@ export default function DrawingTool({ setGraphData }) {
         // Draw Elements (Lines, Free Draw, Labels, Points, Intersections)
         elements.forEach((element, index) => {
           if (element.type === "line") {
-            ctx.strokeStyle = "#000";
+            ctx.strokeStyle = element.color || "#000";
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(element.start.x, element.start.y);
             ctx.lineTo(element.end.x, element.end.y);
             ctx.stroke();
           } else if (element.type === "freeDraw") {
-            ctx.strokeStyle = "#000";
+            ctx.strokeStyle = element.color || "#000";
             ctx.lineWidth = 2;
             ctx.beginPath();
             element.points.forEach((point, idx) => {
@@ -165,7 +218,7 @@ export default function DrawingTool({ setGraphData }) {
             ctx.stroke();
           } else if (element.type === "label") {
             ctx.font = "16px Arial";
-            ctx.fillStyle = draggingLabelIndex === index ? "red" : "#000";
+            ctx.fillStyle = draggingLabelIndex === index ? "red" : element.color || "#000";
             ctx.fillText(element.text, element.x, element.y);
           } else if (element.type === "point") {
             ctx.fillStyle = "#000";
@@ -237,7 +290,8 @@ export default function DrawingTool({ setGraphData }) {
         saveForUndo();
     
         if (tool === "label" && newLabel) {
-          const newLabelElement = { type: "label", text: newLabel, x, y };
+          const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+          const newLabelElement = { type: "label", text: newLabel, x, y, color: randomColor };
           setElements([...elements, newLabelElement]);
           setNewLabel("");
           return;
@@ -300,8 +354,8 @@ export default function DrawingTool({ setGraphData }) {
       };
     
       const handleMouseMove = (e) => {
-        const{x,y} = getMousePosition(e);
-    
+        const { x, y } = getMousePosition(e);
+      
         if (isDrawing) {
           if (tool === "line") {
             drawCanvas();
@@ -323,26 +377,32 @@ export default function DrawingTool({ setGraphData }) {
             )
           );
         } else {
-          // Check for intersection points
-          let foundIntersection = null;
-    
+          // Track all intersections
+          let foundIntersections = [];
+      
           for (let i = 0; i < elements.length; i++) {
             for (let j = i + 1; j < elements.length; j++) {
-              const intersection = getIntersection(elements[i], elements[j]);
-              if (
-                intersection &&
-                Math.abs(intersection.x - x) < 10 &&
-                Math.abs(intersection.y - y) < 10
-              ) {
-                foundIntersection = intersection;
-                break;
+              const intersections = getIntersection(elements[i], elements[j]);
+              if (intersections) {
+                // Filter intersections that are close to the mouse cursor
+                const closeIntersections = intersections.filter(
+                  (intersection) =>
+                    Math.abs(intersection.x - x) < 10 && Math.abs(intersection.y - y) < 10
+                );
+                foundIntersections = [...foundIntersections, ...closeIntersections];
               }
             }
-            if (foundIntersection) break;
           }
-          setIntersectionPoint(foundIntersection);
+      
+          // If any intersections were found, set the intersection point
+          if (foundIntersections.length > 0) {
+            setIntersectionPoint(foundIntersections[0]); // Or choose how to handle multiple intersections
+          } else {
+            setIntersectionPoint(null);
+          }
         }
       };
+      
     
       const handleMouseUp = () => {
         if (tool === "freeDraw" && isDrawing) {
@@ -350,7 +410,9 @@ export default function DrawingTool({ setGraphData }) {
           setElements([...elements, newFreeDraw]);
           setCurrentFreeDraw([]);
           setIsDrawing(false);
+          
         } else if (draggingLabelIndex !== null) {
+          assignLabelToNearbyElements();
           setDraggingLabelIndex(null);
         }
       };
@@ -391,58 +453,89 @@ export default function DrawingTool({ setGraphData }) {
           (line1.type === "line" || line1.type === "freeDraw") &&
           (line2.type === "line" || line2.type === "freeDraw")
         ) {
-          const points1 =
-            line1.type === "freeDraw" ? line1.points : [line1.start, line1.end];
-          const points2 =
-            line2.type === "freeDraw" ? line2.points : [line2.start, line2.end];
-    
+          const points1 = line1.type === "freeDraw" ? line1.points : [line1.start, line1.end];
+          const points2 = line2.type === "freeDraw" ? line2.points : [line2.start, line2.end];
+          
+          const intersections = [];  // Array to store all intersection points
+      
+          // Loop through each segment of the two lines/freeDraws
           for (let i = 0; i < points1.length - 1; i++) {
             for (let j = 0; j < points2.length - 1; j++) {
               const segment1 = { start: points1[i], end: points1[i + 1] };
               const segment2 = { start: points2[j], end: points2[j + 1] };
               const intersection = calculateSegmentIntersection(segment1, segment2);
-              if (intersection) return intersection;
+              
+              if (intersection) {
+                intersections.push(intersection); // Add intersection to the array
+              }
             }
           }
+      
+          // Return all found intersections, or null if no intersections
+          return intersections.length > 0 ? intersections : null;
         }
         return null;
       };
+      
     
       const calculateSegmentIntersection = (seg1, seg2) => {
         if (!seg1 || !seg2 || !seg1.start || !seg1.end || !seg2.start || !seg2.end) {
           return null;
         }
-    
+      
         const { x: x1, y: y1 } = seg1.start;
         const { x: x2, y: y2 } = seg1.end;
         const { x: x3, y: y3 } = seg2.start;
         const { x: x4, y: y4 } = seg2.end;
-    
+      
+        const epsilon = 1e-10; // Small tolerance for floating-point comparisons
+      
         const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-        if (denom === 0) return null; // Lines are parallel
-    
-        const intersectX =
-          ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) /
-          denom;
-        const intersectY =
-          ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) /
-          denom;
-    
-        if (
-          intersectX < Math.min(x1, x2) ||
-          intersectX > Math.max(x1, x2) ||
-          intersectX < Math.min(x3, x4) ||
-          intersectX > Math.max(x3, x4) ||
-          intersectY < Math.min(y1, y2) ||
-          intersectY > Math.max(y1, y2) ||
-          intersectY < Math.min(y3, y4) ||
-          intersectY > Math.max(y3, y4)
-        ) {
-          return null;
+      
+        // Check if lines are parallel (denominator is close to zero)
+        if (Math.abs(denom) < epsilon) {
+          // Check if lines are collinear
+          const crossProduct = (x3 - x1) * (y2 - y1) - (y3 - y1) * (x2 - x1);
+          if (Math.abs(crossProduct) < epsilon) {
+            // Lines are collinear; check for overlap
+            const isBetween = (a, b, c) => Math.min(a, b) - epsilon <= c && c <= Math.max(a, b) + epsilon;
+      
+            const intersections = [];
+            // Check if any of the endpoints overlap or if the segments overlap
+            if (isBetween(x1, x2, x3) && isBetween(y1, y2, y3)) intersections.push({ x: x3, y: y3 });
+            if (isBetween(x1, x2, x4) && isBetween(y1, y2, y4)) intersections.push({ x: x4, y: y4 });
+            if (isBetween(x3, x4, x1) && isBetween(y3, y4, y1)) intersections.push({ x: x1, y: y1 });
+            if (isBetween(x3, x4, x2) && isBetween(y3, y4, y2)) intersections.push({ x: x2, y: y2 });
+      
+            // Return all intersection points for collinear overlaps
+            return intersections.length > 0 ? intersections : null;
+          }
+          return null; // Parallel but not collinear
         }
+      
+        // Calculate intersection point for non-parallel lines
+        const intersectX =
+          ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denom;
+        const intersectY =
+          ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denom;
+      
+        // Check if the intersection point lies on both segments
+        const isOnSegment = (px, py, xA, yA, xB, yB) =>
+          Math.min(xA, xB) - epsilon <= px &&
+          px <= Math.max(xA, xB) + epsilon &&
+          Math.min(yA, yB) - epsilon <= py &&
+          py <= Math.max(yA, yB) + epsilon;
+      
+        if (
+          isOnSegment(intersectX, intersectY, x1, y1, x2, y2) &&
+          isOnSegment(intersectX, intersectY, x3, y3, x4, y4)
+        ) {
+          return { x: intersectX, y: intersectY };
+        }
+      
+        return null; // No valid intersection
+      };      
     
-      return { x: intersectX, y: intersectY };
-  };
       
     return(
         <div className="graph-tool">
