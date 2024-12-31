@@ -107,11 +107,10 @@ export default function DrawingTool({ setGraphData }) {
                 },
                 end: {
                   x: element.end.x,
-                  y: 20, // Keep the end at a fixed value
+                  y: 20,
                 },
               };
             } else {
-              // Non-vertical dotted line
               return {
                 ...element,
                 start: {
@@ -126,12 +125,12 @@ export default function DrawingTool({ setGraphData }) {
             }
           }
       
-          return element; // This ensures all unhandled cases return the original element.
+          return element;
         });
       
         // Set the updated graph data
         const graphData = { axis, elements: adjustedElements };
-        setGraphData(graphData); // Pass updated graphData to GraphTool
+        setGraphData(graphData);
       
       }, [elements, setGraphData]);       
 

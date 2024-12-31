@@ -32,7 +32,7 @@ export default function ResponseTool({graphData}){
         setLoading(true);
         const payload = {question,graphData};
     
-        // Send JSON to backend for Claude analysis
+        // Send JSON to backend
         fetch("/api/upload", {
           method: "POST",
           headers: {
@@ -56,7 +56,7 @@ export default function ResponseTool({graphData}){
               console.error("Error parsing response JSON:", error);
               setError(error);
             } finally {
-              setLoading(false); // Reset loading state
+              setLoading(false);
               setShowSubmitButton(true);
             }
           }) // Update the response text
